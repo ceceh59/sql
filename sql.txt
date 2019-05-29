@@ -1,0 +1,308 @@
+MySQL :
+Moteur de base de données SGBD, permettant la "persistence" de données
+
+- Un moteur peut gérer plusieurs bases de données.
+- Une BDD est composée de table.
+- Une table est struturée par des champs, et peut contenir
+des enregistrements
+
+Dans un table on peut créer des champs.
+Il faut leur donner un type de données :
+	- INT : pour stocker des entiers
+	- VARCHAR : pour stocker des chaines de caractères de (0 à 255 caractères)
+	- TEXT : pour stocker du text jusqu'à 65000 et quelques caractères
+	- DATE : pour stocker une date au format SQL : 2019-05-17
+	
+Une table représente un ensemble de données liés à un concept métier : par exemple on va créer une table "utilisateur" pour stocker tous les utilisateurs inscrits sur notre site. Dans cette table, il y aura un champ par donnée à sauvegarder : email, nom, prénom, date de naissance.
+Dans chaque table, on va souvent ajouter une colonne "id" pour identifiant, qui servira à identifier de manière unique un enregistrement.
+Les noms des champs ne doivent en général pas contenir d'espace, ni de caractères spéciaux, ni de majuscule. Par exemple : date_de_naissance
+
+On peut choisir l'interclassement ut8_unicode_ci pour l'encodage en utf8 et éviter ensuite les problèmes d'affichage des caractères spéciaux.
+
+- L'outil PHPMyAdmin est un fait un site internet développé en PHP, qui permet de gérer les base de données avec une interface graphique.
+	- On peut gérer la structure d'une base : tables, champs.
+	- Et on peut aussi gérer les donnnées : le CRUD (create, read, update, delete).
+
+Exercice : créer avec phpmyadmin une table, pour stocker des articles
+On est un sur un blog et il faut enregistrer suivantes :
+	- titre de l'article
+	- le contenu/texte de l'article
+	- date de création de l'article
+	- est-ce qu'il est publié ou non ? (Boolean : true ou false)
+
+Requêtes SQL :
+- Structure
+	- Créer une base de données : CREATE DATABASE nomdelabase;
+	- Supprimer une base : DROP DATABASE nomdelabase;
+	- Créer une table : CREATE TABLE article
+						(id INT AUTO_INCREMENT
+						, title VARCHAR(255) NOT NULL, content TEXT NOT NULL, created_at DATE NOT NULL, is_online TINYINT NOT NULL, PRIMARY KEY(id)) ENGINE=InoDB COLLATE=utf8_unicode_ci;
+	Soit le nom de la table puis entre parenthèse chaque champ avec son type, puis avec les parenthèse les paramètres de la table (moteur de stockage et interclassement)
+	- Modifier une table : ALTER TABLE article (title title VARCHAR(250) NOT NULL);
+	- Supprimer une table : DROP TABLE article;
+
+- Données :
+	- Insérer des données : 
+		- En précisant les colonnes
+		INSERT INTO utilisateur (email, date_naissance) VALUES ('fab@mail.fr', '2010-05-03');
+		
+		- Sans préciser les colonnes et enregistrer plusieurs lignes à la fois :
+		INSERT INTO utilisateur VALUES (NULL, 'fab2@mail.fr', '2005-11-05'), ( NULL, 'fab3@mail.fr', '2000-10-10');
+		
+	- Sélectionner des données :
+		- Sélectionner (SELECT) toutes les colonnes (*) dans (FROM) la table article :
+		SELECT * FROM article 
+		- sélectionner certaines colonnes :
+		SELECT email, date_naissance FROM utilisateur
+		
+	- Mettre à jour des données :
+		UPDATE utilisateur SET email='nouvelemail@mail.fr';
+		
+	- Supprimer des données :
+		DELETE FROM utilisateur;
+		
+Conditions de sélection, édition, suppression : WHERE
+	SELECT * FROM utilisateur WHERE id=2;
+	SELECT * FROM utilisateur WHERE email='caro@mail.fr';
+	
+	UPDATE utilisateur SET email='nouvelemail@mail.fr' WHERE id=2;
+	
+	DELETE FROM utilisateur WHERE id=3;
+	
+Conditions complexes :
+	- Multiple
+		SELECT * FROM utilisateur WHERE email='caro@mail.fr' AND date_naissance='2006-10-10';
+		
+		SELECT * FROM utilisateur WHERE email='caro@mail.fr' OR date_naissance='2010-05-03';
+		
+		
+		SELECT * FROM utilisateur WHERE email='caro@mail.fr'
+										AND date_naissance='2006-10-10'
+										OR date_naissance='2010-05-03'
+		
+		- Comme en mathématiques, pour prioriser le OU sur le ET, il faut des mettre des parenthèses :
+		SELECT * FROM utilisateur WHERE email='caro@mail.fr'
+										AND (date_naissance='2006-10-10'
+										OR date_naissance='2010-05-03');
+									
+	- Autre opérateur :
+		Inférieur : <
+		Supérieur : >
+		Inférieur ou égal : <=
+		Supérieur ou égal : >=
+		Compris entre x et x : BETWEEN x AND x
+		
+		SELECT * FROM utilisateur WHERE id > 4;
+		SELECT * FROM utilisateur WHERE date_naissance > '2000-01-01';
+		SELECT * FROM utilisateur WHERE date_naissance BETWEEN '2000-01-01' AND '2001-12-31';
+		
+		Commence par, termine par, contient : LIKE
+		// contient
+		SELECT * FROM utilisateur WHERE email LIKE '%@hotmail.%';
+		// commence par
+		SELECT * FROM utilisateur WHERE email LIKE 'caro@%';
+		// termine par
+		SELECT * FROM utilisateur WHERE email LIKE '%@gmail.com';
+		
+		// le _ pour représenter un caractère unique
+		SELECT * FROM utilisateur WHERE secu LIKE '1 59 _56 789 456';
+	
+Exercice : Ecrire les requêtes SQL correspondantes 
+		- Sélectionner tous les utilisateurs nés en 2006
+SELECT * FROM utilisateurs WHERE date_naissance BETWEEN ‘2006-01-01’ AND ‘2006-12-31’;
+SELECT * FROM utilisateur WHERE date_naissance LIKE '2006%'
+SELECT * FROM utilisateur WHERE YEAR(date_naissance) = 2006;
+
+	
+		- Sélectionner tous les articles écrits entre octobre 2008 et septembre 2010
+SELECT * FROM stockagearticles WHERE date_creation BETWEEN ‘2008-10-01’ and ‘2010-09-30’;
+		
+		- Sélectionner tous les articles en ligne ou écrit avant 2010
+SELECT * FROM stockagearticles WHERE is_online = 1 OR date_creation < ‘2010-01-01’ ;
+
+		
+		- Sélectionner l'email de tous les utilisateurs qui ont une email chez yahoo ou une email chez sfr
+SELECT email FROM utilisateurs WHERE email LIKE ‘%@yahoo.%’ OR LIKE ‘%@sfr.fr’ ;
+
+	- modifier tous les titres d'article pour rajouter l'année de la création dans le début du titre
+	- CONCAT est une fonction qui concatène plusieurs chaines entre elles : qui les assemble. On sépare toutes les chaines à assembler par des virgules
+	UPDATE article SET title = CONCAT(YEAR(created_at), '-', title);
+	
+SELECT title, YEAR(created_at) FROM article;
+SELECT title, CONCAT('Ecrit le ', created_at) FROM article;
+
+	
+
+
+
+Mysql - les jointures : Lier des tables entre elles
+
+ETAPE 1 : lier les tables
+Dans notre exemple, on a une table article et une table utilisateur.
+On va lier les tables pour dire qu'un article a été écrit par un utilisateur
+sans avoir à sauvegarder pour chaque article l'id de l'utilisateur, l'email de l'utilisateur et son année de naissance
+
+1- Créer un nouveau champ dans la table article pour référencer l'utilisateur qui l'a écrit
+2- Créer une clé étrangère sur ce nouveau champ (pour assurer la cohérence des données)
+
+1- Dans phpmyadmin, on va dans la table article, puis dans l'onglet structure, et on clique sur ajouter un champ
+Ou en requête SQL directement :
+ALTER TABLE `article` ADD `utilisateur_id` INT NOT NULL AFTER `is_online`;
+
+2- on clique la table, on va dans structure et on clique sur "vue relationnelle"
+et on ajoute la clé étrangère en lui disant que le nouveau est en fait une référence vers un champ d'une autre table déjà existant
+ou en requête SQL directement :
+ALTER TABLE `article` ADD CONSTRAINT `FK_USER` FOREIGN KEY (`utilisateur_id`) REFERENCES `utilisateur`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ON DELETE : que faire de la clé étrangère quand on va supprimer la clé primaire dans la table utilisateur ?
+	- RESTRICT : empecher la suppression de la clé primaire. Donc si on tente de supprimer un utilisateur lié à un article, mysql va empecher la suppression de cet utilisateur.
+	- SET NULL : si on supprime la clé primaire, la clé étrangère est automatiquement mise à NULL (et si la valeur NULL n'est pas autorisée, la requpete plante)
+	- CASCADE : si on supprime la clé primaire, alors les lignes avec la même clé étrangère sont supprimées. Dans notre cas, si on supprime un utilisateur, tous les articles liés à cet utilisateur seront automatiquement par mysql.
+	
+ON UPDATE : la même mais quand on modifie la clé primaire. Ici, si jamais on modifie l'id d'un utilisateur
+
+
+ETAPE 2 : Sélectionner des données de plusieurs table en même temps
+
+Mots clés INNER JOIN et ON :
+	- Si on veut toutes les informations :
+		SELECT * FROM article
+		INNER JOIN `utilisateur` ON article.utilisateur_id = utilisateur.id
+
+		Pour avoir en une seule requêtes les informations des articles en même temps que les informations de l'utilisateur qui l'a écrit. INNER JOIN lie deux tables, et ON indique quels sont les deux champs sur lesquels faire la liaison (un dans la table article et l'autre dans la table utilisateur).
+
+	- Si on veut récupérer uniquement certaines colonnes :
+		SELECT article.id, title, email FROM article INNER JOIN `utilisateur` ON article.utilisateur_id = utilisateur.id
+
+		Attention, si un nom de colonne existe dans plusieurs tables, il faut préfixer ce champ dans la requête pour dire quel est celui que l'on veut.
+
+	- On peut utiliser des ALIAS pour réduire le nom des tables dans la requête :
+		SELECT A.id, A.title, U.email
+		FROM article A
+		INNER JOIN `utilisateur` U ON A.utilisateur_id = U.id
+
+		
+		Types de jointures :
+		- Jointure INTERNE
+			La jointure INNER JOIN est une jointure INTERNE : cela veut dire que seuls les enregistrements qui trouvent une correspondance dans les deux tables seront renvoyés. Ici la jointure dit qu'on lie utilisateur_id à id, donc si un article n'est pas lié à un utilisateur (ou un utilisateur existant), il ne fera pas partie des résultats de la requête.
+			
+		- Jointure EXTERNE
+		Récupérer tous les enregistrements d'une table peu importe la condition de la jointure soit satisfaite. On va donc prioriser une table grâce au mots-clés LEFT et RIGHT.
+		SELECT * FROM `article` A LEFT JOIN utilisateur U ON u.id = A.utilisateur_id
+		Ici on veut tous les articles, peu importe qu'ils soient liés ou non à un utilisateur. Si un article n'est pas lié à un utilisateur, les colonnes correspondant aux données utilisateurs auront NULL
+			
+
+
+
+Mysql - autres clauses et fonctions 
+
+Clauses utilisables utilisables pour les SELECT
+	- ORDER BY : qui sert à trier les résultats de requêtes :
+		- SELECT * FROM articles ORDER BY title
+		Pour trier par ordre alphabétique sur le titre. Le mot-clé ASC est utilisé par défaut si rien n'est précisé.
+		
+		- SELECT * FROM articles ORDER BY title DESC
+		Pour trier par ordre inverse alphabétique sur le titre
+		
+		- On peut trier par plusieurs colonnes au cas où les valeurs dans une colonne sont identiques
+		SELECT * FROM `article` ORDER BY title ASC, content DESC
+		Ici on trie d'abord sur le titre par ordre alphabétique, et si jamais plusieurs titres sont identiques, on triera ces articles sur le champ "content" par ordre inverse alphabétique
+		
+	
+	- GROUP BY pour grouper des enregistrements par la valeur qu'ils ont dans un champ
+		- SELECT is_online, COUNT(*) FROM `article` GROUP BY is_online
+		Ici on groupe tous les articles en-line ensemble, puis tous les articles hors-ligne ensemble. Dans le SELECT, on a choisi deux colonnes, la première c'est le is_online, et la deuxième ça sera le nombre d'articles qui possède cette valeur. On obtient donc le nombre d'articles en ligne et le nombre d'articles hors-ligne.
+		
+		- SELECT is_online, title, COUNT(*) FROM `article` GROUP BY is_online, title
+		On peut grouper par plusieurs colonnes : les valeurs dans les deux champs doivent être identiques pour que les articles se trouvent dans le même groupe
+
+	- HAVING : sert à restreindre les résultats du GROUP BY
+		- 	SELECT date_naissance, COUNT(*) FROM `utilisateur`
+			GROUP BY date_naissance HAVING COUNT(*) > 1
+		Ici on groupe les utilisateurs par la date de naissance. Et grâce au HAVING, on ne sort que les groupes où il y a au moins deux utilisateurs nés le même jour.
+		
+		- 	SELECT date_naissance, COUNT(*) FROM `utilisateur`
+			GROUP BY date_naissance HAVING COUNT(*) = 1
+		Ici on veut tous les utilisateurs groupés par date de naissance, et le HAVING dit qu'on ne veut que les utilisateurs dont leur date de naissance est unique (aucun autre utilisateur né le même jour)
+
+- Fonctions d'agréagation (ou de groupement) :
+	- COUNT() : sert à obtenir le nombre d'enregistrement dans une table
+		- SELECT COUNT(*) FROM article
+		- SELECT COUNT(*) FROM article WHERE is_online=1
+
+	- SUM() : obtenir la somme de toutes les valeurs du champ précisé
+		SELECT SUM(price) FROM `article` WHERE is_online=1
+		Obtenir la somme des prix de tous les articles en ligne
+		
+	- AVG() : obtenir la moyenne de toutes les valeurs du champ précisé
+		SELECT AVG(price) FROM article
+		
+	- MIN() : obtenir la valeur minimum dans une colonne
+
+	- MAX() : obtenir la valeur maximum dans une colonne
+
+	Toutes ces fonctions peuvent utiliser dans un HAVING :
+	SELECT title, COUNT(*) FROM `article` GROUP BY title HAVING SUM(price) > 10.6
+	Ici on veut tous les groupements d'articles par titre, où la somme des prix d'un groupe d'articles est supérieur à 10,6
+
+
+- Fonctions scalaires :
+	ROUND() : arrondi un nombre
+		- ROUND(price, 1) pour arrondir avec un chiffre après la virgule
+		- ROUND(price, 2) pour arrondir avec deux chiffres après la virgule
+	TRUNCATE() : tronquer purement et simplement
+	LENGTH(): obtenir le nombre de caractères dans une chaine de caractères
+
+	Et plein d'autres :
+	https://openclassrooms.com/fr/courses/1959476-administrez-vos-bases-de-donnees-avec-mysql/1966680-fonctions-scalaires
+
+	Ces fonctions sont utilisables dans le SELECT et dans le WHERE
+
+
+- Exercices :
+1- Créer une table produit avec les champs :
+	- id
+	- created_at
+	- name
+	- price
+	- stock
+	- category
+En prenant le type de champ le plus adapté.
+
+2- Lier cette nouvelle avec la table utilisateur en disant : un produit peut être lié (ou non) à un utilisateur (son vendeur) : nouveau champ + clé étrangère
+
+3- Ecrire les requêtes correspondantes :
+	- Sélectionner tous les produits avec leur vendeur, et uniquement les produits qui ont un vendeur
+	- Sélectionner tous les produits avec leur vendeur, qu'ils aient un vendeur ou non
+	- Mettre à jour le stock des produits en ajoutant 10 au stock, pour les produits dont le stock est inférieur à 2
+	- Sélectionner le nombre de produits dont le prix est supérieur à 50$
+	- Sélectionner le nombre d'articles groupés par categorie
+	- Sélectionner la somme du prix des articles, groupés par catégorie, là où la moyenne des prix est supérieur à 30
+
+
+ALTER TABLE products ADD CONSTRAINT `FK_VENDOR` FOREIGN KEY (`vendor_id`) REFERENCES `utilisateur`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+SELECT * FROM products INNER JOIN utilisateur ON products.vendor_id = utilisateur.id ;
+SELECT * FROM products LEFT JOIN utilisateur ON products.vendor_id = utilisateur.id ;
+UPDATE product SET stock=stock+10 WHERE stock<2 ;
+SELECT * FROM product WHERE price>50;
+
+SELECT category, COUNT(*) FROM product GROUP BY category ;
+
+
+SELECT SUM(price), category FROM product GROUP BY category HAVING AVG(price)>30 ;
+
+SELECT * FROM product WHERE price > (SELECT MIN(price) FROM product) ;
+
+
+- Sous-requêtes / Requêtes DANS Requêtes :
+SELECT * FROM product WHERE price > (SELECT MIN(price) FROM product) ;
+
+
+SELECT * FROM utilisateur INNER JOIN civilite ON utilisateur.civ_id = civilite.id WHERE civilite.libelle = 'Mme';
+
+est équivalent à la version avec sous-requête :
+
+SELECT * FROM utilisateur WHERE civ_id = (SELECT id FROM civilite WHERE libelle='M.')*
+
+
+https://www.biglist.com/lists/virtools-user-group/archives/0110/jpg00002.jpg
